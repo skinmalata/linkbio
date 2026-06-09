@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { putItem, queryItems, updateItem } from "@/lib/dynamodb";
+import { putItem, queryItems, updateItem, getItem } from "@/lib/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
 export async function GET() {
@@ -28,6 +28,9 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const profile = await getItem(`USER#${session.user.id}`, "PROFILE") as any;
+  if (!profile?.isPro) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const { title, description, imageUrl, price, currency } = await req.json();
   if (!title) return NextResponse.json({ error: "Title required" }, { status: 400 });
@@ -67,6 +70,9 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const profile = await getItem(`USER#${session.user.id}`, "PROFILE") as any;
+  if (!profile?.isPro) return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
 
   const { productId, title, description, imageUrl, price, currency, isFeatured, position } = await req.json();
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 });

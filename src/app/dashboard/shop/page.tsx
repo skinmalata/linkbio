@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Trash2, Star, Upload } from "lucide-react";
+import { Plus, Trash2, Star, Upload, Lock, Crown } from "lucide-react";
 import { currencies } from "@/lib/currencies";
 
 interface Product {
@@ -17,6 +17,7 @@ interface Product {
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", imageUrl: "", price: "", currency: "USD" });
@@ -25,18 +26,19 @@ export default function ShopPage() {
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchProducts = useCallback(async () => {
-    const res = await fetch("/api/products");
-    if (res.ok) {
-      const data = await res.json();
-      setProducts(data);
-    }
+  const fetchData = useCallback(async () => {
+    const [prodRes, profRes] = await Promise.all([
+      fetch("/api/products"),
+      fetch("/api/profile"),
+    ]);
+    if (prodRes.ok) setProducts(await prodRes.json());
+    if (profRes.ok) setProfile(await profRes.json());
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const isPro = profile?.isPro;
 
   const handleUpload = async (file: File) => {
     setUploading(true);
@@ -64,7 +66,7 @@ export default function ShopPage() {
     if (res.ok) {
       setForm({ title: "", description: "", imageUrl: "", price: "", currency: "USD" });
       setShowForm(false);
-      fetchProducts();
+      fetchData();
     } else {
       const data = await res.json();
       setError(data.error || "Failed to add product");
@@ -78,7 +80,7 @@ export default function ShopPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId: product.productId, isFeatured: !product.isFeatured }),
     });
-    if (res.ok) fetchProducts();
+    if (res.ok) fetchData();
     else {
       const data = await res.json();
       alert(data.error || "Failed to update");
@@ -87,7 +89,7 @@ export default function ShopPage() {
 
   const deleteProduct = async (productId: string) => {
     await fetch(`/api/products/${productId}`, { method: "DELETE" });
-    fetchProducts();
+    fetchData();
   };
 
   const featuredCount = products.filter((p) => p.isFeatured).length;
@@ -100,6 +102,27 @@ export default function ShopPage() {
     const cur = currencies.find((c) => c.code === product.currency);
     return product.price ? `${cur?.symbol || ""}${product.price}` : "";
   };
+
+  if (!isPro) {
+    return (
+      <div className="max-w-lg mx-auto mt-16 text-center">
+        <div className="bg-white p-10 rounded-2xl border shadow-sm">
+          <Lock className="w-10 h-10 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Pro feature</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            The Shop feature is available on the Pro plan and above. Showcase up to 10 products with images, prices, and currencies.
+          </p>
+          <a
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all"
+          >
+            <Crown className="w-4 h-4" />
+            Upgrade to Pro
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -168,7 +191,6 @@ export default function ShopPage() {
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
             />
 
-            {/* Image upload */}
             <div className="space-y-2">
               {form.imageUrl && (
                 <div className="relative w-32 h-24 rounded-lg overflow-hidden border">
@@ -192,7 +214,6 @@ export default function ShopPage() {
               <p className="text-xs text-gray-400">JPEG, PNG, WebP, or GIF. Max 5MB.</p>
             </div>
 
-            {/* Price + Currency */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Price</label>

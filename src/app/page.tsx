@@ -15,26 +15,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="px-6 py-4 flex items-center justify-between">
-        <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          LinkBio
-        </span>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/pricing"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Pricing
-          </Link>
-          <button
-            onClick={() => signIn("google")}
-            className="px-5 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
-          >
-            Sign in
-          </button>
-        </div>
-      </header>
-
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 max-w-2xl leading-tight">
           All your links,<br />
