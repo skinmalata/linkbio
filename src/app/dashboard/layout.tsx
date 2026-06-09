@@ -11,9 +11,9 @@ export default async function DashboardLayout({
   if (!session?.user) redirect("/");
 
   return (
-    <div className="flex">
-      <DashboardNav username={session.user.username} />
-      <main className="flex-1 p-8 bg-gray-50 min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
+      <DashboardNav />
+      <main className="flex-1 p-4 sm:p-8 overflow-auto">
         {children}
       </main>
     </div>

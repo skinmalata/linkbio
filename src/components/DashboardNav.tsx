@@ -2,59 +2,53 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { cn } from "@/lib/utils";
+import {
+  Link as LinkIcon,
+  User,
+  Store,
+  Palette,
+  BarChart3,
+  Globe,
+  CreditCard,
+  Settings,
+} from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Links", icon: "🔗" },
-  { href: "/dashboard/profile", label: "Profile", icon: "👤" },
-  { href: "/dashboard/shop", label: "Shop", icon: "🛍️" },
-  { href: "/dashboard/appearance", label: "Appearance", icon: "🎨" },
-  { href: "/dashboard/analytics", label: "Analytics", icon: "📊" },
+  { href: "/dashboard", label: "Links", icon: LinkIcon },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
+  { href: "/dashboard/shop", label: "Shop", icon: Store },
+  { href: "/dashboard/appearance", label: "Appearance", icon: Palette },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/domains", label: "Domains", icon: Globe },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
 ];
 
-export default function DashboardNav({ username }: { username: string }) {
+export default function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen flex-col border-r bg-white">
-      <div className="p-4 border-b">
-        <Link href="/" className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          LinkBio
-        </Link>
-        <a
-          href={`/${username}`}
-          target="_blank"
-          className="text-sm text-gray-500 hover:text-purple-600 block mt-1"
-        >
-          /{username} ↗
-        </a>
+    <nav className="w-56 shrink-0">
+      <div className="text-lg font-bold text-gray-900 mb-6 px-3">LinkBio</div>
+      <div className="space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active
+                  ? "bg-purple-100 text-purple-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {item.label}
+            </Link>
+          );
+        })}
       </div>
-      <nav className="flex-1 p-2 space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-              pathname === item.href
-                ? "bg-purple-50 text-purple-700 font-medium"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            )}
-          >
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-      <div className="p-4 border-t">
-        <button
-          onClick={() => signOut()}
-          className="text-sm text-gray-500 hover:text-red-600 w-full text-left"
-        >
-          Sign out
-        </button>
-      </div>
-    </div>
+    </nav>
   );
 }

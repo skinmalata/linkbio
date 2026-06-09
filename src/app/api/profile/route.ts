@@ -10,14 +10,14 @@ export async function GET() {
   if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json({
-    userId: profile.userId,
+    userId: session.user.id,
     email: profile.email,
     name: profile.name,
     image: profile.image,
     username: profile.username,
     bio: profile.bio || "",
-    theme: profile.theme,
-    isPro: profile.isPro,
+    theme: profile.theme || "minimal",
+    isPro: profile.isPro || false,
     createdAt: profile.createdAt,
   });
 }
@@ -42,7 +42,7 @@ export async function PUT(req: Request) {
       if (taken) return NextResponse.json({ error: "Username already taken" }, { status: 409 });
 
       await deleteItem(`USERNAME#${oldUsername}`, "PROFILE");
-      await putItem({ PK: `USERNAME#${username}`, SK: "PROFILE", userId: session.user.id });
+      await putItem(`USERNAME#${username}`, "PROFILE", { userId: session.user.id });
       updates.username = username;
     }
   }

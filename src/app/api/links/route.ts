@@ -1,27 +1,21 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getItem, putItem, queryItems, deleteItem, updateItem } from "@/lib/dynamodb";
-import { v4 as uuidv4 } from "uuid";
+import { getItem, queryItems, putItem, deleteItem, incrementAttribute } from "@/lib/dynamodb";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const links = await queryItems(`USER#${session.user.id}`, "LINK#");
-  const sorted = links
-    .map((l: any) => ({
-      linkId: l.SK.replace("LINK#", ""),
-      userId: l.userId,
+  return NextResponse.json(
+    links.map((l: any) => ({
+      linkId: l.sk?.replace("LINK#", ""),
       title: l.title,
       url: l.url,
-      position: l.position,
-      isActive: l.isActive,
       clicks: l.clicks || 0,
-      createdAt: l.createdAt,
-    }))
-    .sort((a: any, b: any) => a.position - b.position);
-
-  return NextResponse.json(sorted);
+      position: l.position || 0,
+    })).sort((a, b) => a.position - b.position)
+  );
 }
 
 export async function POST(req: Request) {
@@ -31,47 +25,42 @@ export async function POST(req: Request) {
   const { title, url } = await req.json();
   if (!title || !url) return NextResponse.json({ error: "Title and URL required" }, { status: 400 });
 
-  const linkId = uuidv4();
-  const existingLinks = await queryItems(`USER#${session.user.id}`, "LINK#");
+  const linkId = crypto.randomUUID().slice(0, 8);
+  const profile = await getItem(`USER#${session.user.id}`, "PROFILE");
+  const existing = await queryItems(`USER#${session.user.id}`, "LINK#");
+  const position = existing.length;
+  const isPro = (profile as any)?.isPro;
 
-  await putItem({
-    PK: `USER#${session.user.id}`,
-    SK: `LINK#${linkId}`,
+  if (existing.length >= 3 && !isPro) {
+    return NextResponse.json({ error: "Free plan limit: 3 links. Upgrade to Pro for unlimited." }, { status: 403 });
+  }
+
+  await putItem(`LINKID#${linkId}`, "META", { userId: session.user.id });
+  await putItem(`USER#${session.user.id}`, `LINK#${linkId}`, {
     linkId,
-    userId: session.user.id,
     title,
     url,
-    position: existingLinks.length,
-    isActive: true,
+    position,
     clicks: 0,
     createdAt: new Date().toISOString(),
   });
 
-  await putItem({
-    PK: `LINKID#${linkId}`,
-    SK: "META",
-    userId: session.user.id,
-  });
-
-  return NextResponse.json({ linkId, title, url, position: existingLinks.length, isActive: true });
+  return NextResponse.json({ linkId, title, url, position, clicks: 0 });
 }
 
 export async function PUT(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { linkId, title, url, position, isActive } = await req.json();
+  const { linkId, title, url } = await req.json();
   if (!linkId) return NextResponse.json({ error: "linkId required" }, { status: 400 });
 
-  const updates: Record<string, unknown> = {};
-  if (title !== undefined) updates.title = title;
-  if (url !== undefined) updates.url = url;
-  if (position !== undefined) updates.position = position;
-  if (isActive !== undefined) updates.isActive = isActive;
+  const updates: Record<string, any> = {};
+  if (title) updates.title = title;
+  if (url) updates.url = url;
 
-  if (Object.keys(updates).length > 0) {
-    await updateItem(`USER#${session.user.id}`, `LINK#${linkId}`, updates);
-  }
+  const { updateItem } = await import("@/lib/dynamodb");
+  await updateItem(`USER#${session.user.id}`, `LINK#${linkId}`, updates);
 
   return NextResponse.json({ success: true });
 }

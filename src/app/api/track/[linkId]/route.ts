@@ -16,11 +16,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ linkId: 
 
   const targetUrl = linkItem.url as string;
 
-  await putItem({
-    PK: `CLICK#${linkId}`,
-    SK: `TS#${Date.now()}`,
+  await putItem(`CLICK#${linkId}`, `TS#${Date.now()}`, {
     linkId,
     userId,
+    referrer,
+    userAgent,
+    timestamp: new Date().toISOString(),
+  });
+
+  await putItem(`USER#${userId}`, `CLICK#${Date.now()}`, {
+    linkId,
     referrer,
     userAgent,
     timestamp: new Date().toISOString(),

@@ -3,6 +3,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -18,12 +19,20 @@ export default function Home() {
         <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           LinkBio
         </span>
-        <button
-          onClick={() => signIn("google")}
-          className="px-5 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
-        >
-          Sign in
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/pricing"
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Pricing
+          </Link>
+          <button
+            onClick={() => signIn("google")}
+            className="px-5 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
+          >
+            Sign in
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
@@ -36,12 +45,20 @@ export default function Home() {
         <p className="mt-4 text-lg text-gray-500 max-w-md">
           Create your free link-in-bio page. Share all your important links in one place.
         </p>
-        <button
-          onClick={() => signIn("google")}
-          className="mt-8 px-8 py-3 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700 transition-colors"
-        >
-          Get started free
-        </button>
+        <div className="flex items-center gap-3 mt-8">
+          <button
+            onClick={() => signIn("google")}
+            className="px-8 py-3 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700 transition-colors"
+          >
+            Get started free
+          </button>
+          <Link
+            href="/pricing"
+            className="px-8 py-3 border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            See pricing
+          </Link>
+        </div>
 
         <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl w-full text-left">
           <div className="p-4 rounded-xl border bg-white">

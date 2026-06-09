@@ -1,6 +1,5 @@
+import { auth } from "@/lib/auth";
 import { getItem, queryItems } from "@/lib/dynamodb";
-import { currencies } from "@/lib/currencies";
-import { notFound } from "next/navigation";
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -8,113 +7,107 @@ interface Props {
 
 export default async function PublicProfilePage({ params }: Props) {
   const { username } = await params;
+  const profile = (await getItem(`USERNAME#${username}`, "PROFILE")) as any;
 
-  const userRef = await getItem(`USERNAME#${username}`, "PROFILE");
-  if (!userRef) notFound();
-
-  const profile = await getItem(`USER#${userRef.userId}`, "PROFILE");
-  if (!profile) notFound();
-
-  const links = await queryItems(`USER#${userRef.userId}`, "LINK#");
-  const activeLinks = links
-    .filter((l: any) => l.isActive)
-    .sort((a: any, b: any) => a.position - b.position);
-
-  const products = await queryItems(`USER#${userRef.userId}`, "PRODUCT#");
-  const featuredProducts = products
-    .filter((p: any) => p.isFeatured)
-    .sort((a: any, b: any) => a.position - b.position);
-
-  let theme: any = {};
-  try {
-    theme = JSON.parse(profile.theme as string);
-  } catch {
-    theme = {
-      background: "bg-gradient-to-br from-purple-500 to-pink-500",
-      cardStyle: "rounded-2xl shadow-lg",
-      textColor: "text-white",
-      buttonStyle: "rounded-full",
-      font: "font-sans",
-    };
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-300 mb-2">404</h1>
+          <p className="text-gray-400">This page does not exist</p>
+        </div>
+      </div>
+    );
   }
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+  const userId = profile.pk?.replace?.("USER#", "") || profile.userId;
+  const links = (await queryItems(`USER#${userId}`, "LINK#")).map((l: any) => ({
+    id: l.linkId || l.sk?.replace("LINK#", ""),
+    title: l.title,
+    url: l.url,
+  })).filter((l) => l.title && l.url);
+
+  const products = (await queryItems(`USER#${userId}`, "PRODUCT#")).map((p: any) => ({
+    id: p.productId || p.sk?.replace("PRODUCT#", ""),
+    name: p.name,
+    price: p.price,
+    currency: p.currency || "USD",
+    image: p.image,
+    url: p.url,
+    featured: p.featured,
+  })).filter((p) => p.name);
+
+  const featuredProducts = products.filter((p) => p.featured).slice(0, 9);
+  const name = profile.name || username;
+  const avatar = profile.image;
+
+  const theme = (profile.theme || "minimal") as string;
+  const themes: Record<string, { bg: string; card: string; text: string; accent: string }> = {
+    minimal: { bg: "bg-white", card: "bg-gray-100", text: "text-gray-900", accent: "text-gray-600" },
+    dark: { bg: "bg-gray-900", card: "bg-gray-800", text: "text-white", accent: "text-gray-400" },
+    forest: { bg: "bg-green-50", card: "bg-green-100", text: "text-green-900", accent: "text-green-700" },
+    ocean: { bg: "bg-blue-50", card: "bg-blue-100", text: "text-blue-900", accent: "text-blue-700" },
+    sunset: { bg: "bg-orange-50", card: "bg-orange-100", text: "text-orange-900", accent: "text-orange-700" },
+    lavender: { bg: "bg-purple-50", card: "bg-purple-100", text: "text-purple-900", accent: "text-purple-700" },
+  };
+  const t = themes[theme] || themes.minimal;
 
   return (
-    <div className={`min-h-screen ${theme.background} ${theme.font} flex flex-col items-center px-4 py-12`}>
-      <div className="w-full max-w-md mx-auto flex flex-col items-center gap-6">
-        {profile.image && (
+    <div className={`min-h-screen ${t.bg} flex flex-col items-center py-12 px-4`}>
+      <div className="w-full max-w-md space-y-6">
+        {avatar && (
           <img
-            src={profile.image}
-            alt={profile.name}
-            className="w-20 h-20 rounded-full border-2 border-white/30 object-cover"
+            src={avatar}
+            alt={name}
+            className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-white shadow-md"
           />
         )}
-        <h1 className={`text-xl font-bold ${theme.textColor}`}>{profile.name}</h1>
+        <h1 className={`text-2xl font-bold text-center ${t.text}`}>{name}</h1>
         {profile.bio && (
-          <p className={`text-sm text-center opacity-80 ${theme.textColor}`}>{profile.bio}</p>
+          <p className={`text-center text-sm ${t.accent}`}>{profile.bio}</p>
         )}
 
-        {featuredProducts.length > 0 && (
-          <div className="w-full">
-            <h2 className={`text-sm font-semibold uppercase tracking-wider opacity-60 mb-3 ${theme.textColor}`}>
-              Shop
-            </h2>
-            <div className="grid grid-cols-1 gap-3">
-              {featuredProducts.map((product: any) => (
-                <div
-                  key={product.productId}
-                  className={`overflow-hidden ${theme.cardStyle} ${theme.cardBg || "bg-white/10 backdrop-blur-sm"} border ${theme.border || "border-white/20"}`}
-                >
-                  {product.imageUrl && (
-                    <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4 space-y-1">
-                    <h3 className={`font-semibold ${theme.textColor}`}>{product.title}</h3>
-                    {product.description && (
-                      <p className={`text-sm opacity-70 ${theme.textColor}`}>{product.description}</p>
-                    )}
-                    {product.price && (
-                      <p className={`font-bold ${theme.textColor}`}>
-                        {currencies.find((c: any) => c.code === (product.currency || "USD"))?.symbol || ""}
-                        {product.price}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="w-full flex flex-col gap-3">
-          {activeLinks.map((link: any) => (
+        <div className="space-y-3">
+          {links.map((link) => (
             <a
-              key={link.linkId}
-              href={`${baseUrl}/api/track/${link.linkId}`}
+              key={link.id}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`
-                w-full px-6 py-4 text-center font-medium transition-all
-                hover:scale-[1.02] active:scale-[0.98]
-                ${theme.cardStyle} ${theme.buttonStyle}
-                ${theme.textColor}
-                ${theme.cardBg || "bg-white/10 backdrop-blur-sm"}
-                border ${theme.border || "border-white/20"}
-              `}
+              className={`block w-full ${t.card} ${t.text} rounded-xl px-5 py-3.5 text-center font-medium hover:opacity-80 transition-all shadow-sm`}
             >
               {link.title}
             </a>
           ))}
         </div>
+
+        {featuredProducts.length > 0 && (
+          <div className="pt-4 border-t border-gray-200">
+            <h2 className={`text-sm font-semibold ${t.text} mb-3 text-center`}>Shop</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {featuredProducts.map((product) => (
+                <a
+                  key={product.id}
+                  href={product.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${t.card} rounded-lg p-2 text-center hover:opacity-80 transition-opacity`}
+                >
+                  {product.image && (
+                    <img src={product.image} alt={product.name} className="w-full aspect-square object-cover rounded-md mb-1" />
+                  )}
+                  <p className={`text-xs font-medium ${t.text} leading-tight`}>{product.name}</p>
+                  <p className={`text-[10px] ${t.accent}`}>
+                    {product.currency === "USD" ? "$" : product.currency === "EUR" ? "€" : product.currency === "GBP" ? "£" : product.currency + " "}
+                    {product.price}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className={`text-center text-xs ${t.accent} pt-4`}>LinkBio</p>
       </div>
     </div>
   );

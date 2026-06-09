@@ -39,9 +39,7 @@ export async function POST(req: Request) {
 
   const productId = uuidv4();
 
-  await putItem({
-    PK: `USER#${session.user.id}`,
-    SK: `PRODUCT#${productId}`,
+  await putItem(`USER#${session.user.id}`, `PRODUCT#${productId}`, {
     productId,
     userId: session.user.id,
     title,
