@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error" | "taken">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,8 +73,11 @@ export default function ProfilePage() {
       setStatus("taken");
     } else if (res.ok) {
       setStatus("saved");
+      setErrorMsg("");
       updateSession();
     } else {
+      const data = await res.json().catch(() => ({}));
+      setErrorMsg(data.error || "Failed to save");
       setStatus("error");
     }
 
@@ -213,7 +217,7 @@ export default function ProfilePage() {
           )}
           {status === "error" && (
             <span className="flex items-center gap-1 text-sm text-red-500">
-              <AlertCircle className="w-3 h-3" /> Failed to save
+              <AlertCircle className="w-3 h-3" /> {errorMsg}
             </span>
           )}
         </div>

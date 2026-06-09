@@ -23,33 +23,40 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, image, bio, username, theme } = await req.json();
-  const updates: Record<string, unknown> = {};
-  if (name !== undefined) updates.name = name;
-  if (image !== undefined) updates.image = image;
-  if (bio !== undefined) updates.bio = bio;
-  if (theme !== undefined) updates.theme = theme;
+    const { name, image, bio, username, theme } = await req.json();
+    const updates: Record<string, unknown> = {};
+    if (name !== undefined) updates.name = name;
+    if (image !== undefined) updates.image = image;
+    if (bio !== undefined) updates.bio = bio;
+    if (theme !== undefined) updates.theme = theme;
 
-  if (username !== undefined) {
-    const current = await getItem(`USER#${session.user.id}`, "PROFILE");
-    const oldUsername = current?.username as string;
+    if (username !== undefined) {
+      const current = await getItem(`USER#${session.user.id}`, "PROFILE");
+      const oldUsername = current?.username as string | undefined;
 
-    if (username !== oldUsername) {
-      const taken = await getItem(`USERNAME#${username}`, "PROFILE");
-      if (taken) return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+      if (username !== oldUsername) {
+        const taken = await getItem(`USERNAME#${username}`, "PROFILE");
+        if (taken) return NextResponse.json({ error: "Username already taken" }, { status: 409 });
 
-      await deleteItem(`USERNAME#${oldUsername}`, "PROFILE");
-      await putItem(`USERNAME#${username}`, "PROFILE", { userId: session.user.id });
-      updates.username = username;
+        if (oldUsername) {
+          await deleteItem(`USERNAME#${oldUsername}`, "PROFILE");
+        }
+        await putItem(`USERNAME#${username}`, "PROFILE", { userId: session.user.id });
+        updates.username = username;
+      }
     }
-  }
 
-  if (Object.keys(updates).length > 0) {
-    await updateItem(`USER#${session.user.id}`, "PROFILE", updates);
-  }
+    if (Object.keys(updates).length > 0) {
+      await updateItem(`USER#${session.user.id}`, "PROFILE", updates);
+    }
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("Profile PUT error:", err);
+    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
+  }
 }
