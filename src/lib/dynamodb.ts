@@ -20,10 +20,10 @@ const doc = DynamoDBDocumentClient.from(client);
 
 const TABLE = process.env.DYNAMODB_TABLE || "linkbio";
 
-export async function getItem(pk: string, prefix: string) {
+export async function getItem(PK: string, SK: string) {
   try {
     const res = await doc.send(
-      new GetCommand({ TableName: TABLE, Key: { pk, sk: prefix } })
+      new GetCommand({ TableName: TABLE, Key: { PK, SK } })
     );
     return res.Item;
   } catch {
@@ -31,22 +31,22 @@ export async function getItem(pk: string, prefix: string) {
   }
 }
 
-export async function putItem(pk: string, sk: string, item: Record<string, any>) {
+export async function putItem(PK: string, SK: string, item: Record<string, any>) {
   await doc.send(
     new PutCommand({
       TableName: TABLE,
-      Item: { pk, sk, ...item },
+      Item: { PK, SK, ...item },
     })
   );
 }
 
-export async function queryItems(pk: string, prefix: string) {
+export async function queryItems(PK: string, prefix: string) {
   const res = await doc.send(
     new QueryCommand({
       TableName: TABLE,
-      KeyConditionExpression: "pk = :pk AND begins_with(sk, :prefix)",
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :prefix)",
       ExpressionAttributeValues: {
-        ":pk": pk,
+        ":pk": PK,
         ":prefix": prefix,
       },
     })
@@ -54,7 +54,7 @@ export async function queryItems(pk: string, prefix: string) {
   return res.Items || [];
 }
 
-export async function updateItem(pk: string, sk: string, updates: Record<string, any>) {
+export async function updateItem(PK: string, SK: string, updates: Record<string, any>) {
   const keys = Object.keys(updates);
   if (keys.length === 0) return;
 
@@ -65,7 +65,7 @@ export async function updateItem(pk: string, sk: string, updates: Record<string,
   await doc.send(
     new UpdateCommand({
       TableName: TABLE,
-      Key: { pk, sk },
+      Key: { PK, SK },
       UpdateExpression: `SET ${expr}`,
       ExpressionAttributeNames: attrNames,
       ExpressionAttributeValues: attrValues,
@@ -73,21 +73,21 @@ export async function updateItem(pk: string, sk: string, updates: Record<string,
   );
 }
 
-export async function deleteItem(pk: string, sk: string) {
+export async function deleteItem(PK: string, SK: string) {
   await doc.send(
-    new DeleteCommand({ TableName: TABLE, Key: { pk, sk } })
+    new DeleteCommand({ TableName: TABLE, Key: { PK, SK } })
   );
 }
 
 export async function incrementAttribute(
-  pk: string,
-  sk: string,
+  PK: string,
+  SK: string,
   attr: string
 ) {
   await doc.send(
     new UpdateCommand({
       TableName: TABLE,
-      Key: { pk, sk },
+      Key: { PK, SK },
       UpdateExpression: `ADD #attr :one`,
       ExpressionAttributeNames: { "#attr": attr },
       ExpressionAttributeValues: { ":one": 1 },

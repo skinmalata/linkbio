@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getItem, queryItems, putItem, deleteItem, incrementAttribute } from "@/lib/dynamodb";
+import { getItem, queryItems, putItem, updateItem } from "@/lib/dynamodb";
 
 export async function GET() {
   const session = await auth();
@@ -9,7 +9,7 @@ export async function GET() {
   const links = await queryItems(`USER#${session.user.id}`, "LINK#");
   return NextResponse.json(
     links.map((l: any) => ({
-      linkId: l.sk?.replace("LINK#", ""),
+      linkId: l.SK?.replace("LINK#", ""),
       title: l.title,
       url: l.url,
       clicks: l.clicks || 0,
@@ -59,7 +59,6 @@ export async function PUT(req: Request) {
   if (title) updates.title = title;
   if (url) updates.url = url;
 
-  const { updateItem } = await import("@/lib/dynamodb");
   await updateItem(`USER#${session.user.id}`, `LINK#${linkId}`, updates);
 
   return NextResponse.json({ success: true });
