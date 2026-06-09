@@ -4,13 +4,22 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Check } from "lucide-react";
 
+const previewBtn: Record<string, string> = {
+  minimal: "bg-gradient-to-r from-purple-600 to-pink-600 text-white",
+  dark: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white",
+  forest: "bg-gradient-to-r from-amber-400 to-orange-500 text-stone-900",
+  ocean: "bg-gradient-to-r from-cyan-400 to-blue-500 text-white",
+  sunset: "bg-white text-gray-900",
+  lavender: "bg-gradient-to-r from-purple-600 to-pink-500 text-white",
+};
+
 const themes = [
-  { id: "minimal", name: "Minimal", desc: "Clean white", bg: "bg-white border-gray-200", text: "text-gray-900", preview: "bg-gray-100" },
-  { id: "dark", name: "Dark", desc: "Bold black", bg: "bg-gray-900 border-gray-700", text: "text-white", preview: "bg-gray-800" },
-  { id: "forest", name: "Forest", desc: "Deep green", bg: "bg-green-900 border-green-700", text: "text-white", preview: "bg-green-800" },
-  { id: "ocean", name: "Ocean", desc: "Blue depths", bg: "bg-blue-900 border-blue-700", text: "text-white", preview: "bg-blue-800" },
-  { id: "sunset", name: "Sunset", desc: "Warm glow", bg: "bg-gradient-to-b from-orange-500 via-pink-500 to-purple-600", text: "text-white", preview: "bg-white/20" },
-  { id: "lavender", name: "Lavender", desc: "Soft purple", bg: "bg-purple-100 border-purple-200", text: "text-purple-900", preview: "bg-purple-100" },
+  { id: "minimal", name: "Minimal", desc: "Clean white", bg: "bg-white border-gray-200", text: "text-gray-900", preview: "bg-gradient-to-r from-purple-600 to-pink-600" },
+  { id: "dark", name: "Dark", desc: "Bold black", bg: "bg-gray-900 border-gray-700", text: "text-white", preview: "bg-gradient-to-r from-indigo-500 to-purple-600" },
+  { id: "forest", name: "Forest", desc: "Deep green", bg: "bg-green-900 border-green-700", text: "text-white", preview: "bg-gradient-to-r from-amber-400 to-orange-500" },
+  { id: "ocean", name: "Ocean", desc: "Blue depths", bg: "bg-blue-900 border-blue-700", text: "text-white", preview: "bg-gradient-to-r from-cyan-400 to-blue-500" },
+  { id: "sunset", name: "Sunset", desc: "Warm glow", bg: "bg-gradient-to-b from-orange-500 via-pink-500 to-purple-600", text: "text-white", preview: "bg-white" },
+  { id: "lavender", name: "Lavender", desc: "Soft purple", bg: "bg-purple-100 border-purple-200", text: "text-purple-900", preview: "bg-gradient-to-r from-purple-600 to-pink-500" },
 ];
 
 export default function AppearancePage() {
@@ -83,13 +92,13 @@ export default function AppearancePage() {
               {session?.user?.name || "Your Name"}
             </p>
             <div className="w-full max-w-xs space-y-2">
-              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl border ${active.preview} ${active.text} backdrop-blur-sm transition-all`}>
+              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl shadow-sm ${previewBtn[active.id]} transition-all`}>
                 My GitHub
               </div>
-              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl border ${active.preview} ${active.text} backdrop-blur-sm transition-all`}>
+              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl shadow-sm ${previewBtn[active.id]} transition-all`}>
                 My Website
               </div>
-              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl border ${active.preview} ${active.text} backdrop-blur-sm transition-all`}>
+              <div className={`w-full px-5 py-3.5 text-center text-sm font-medium rounded-xl shadow-sm ${previewBtn[active.id]} transition-all`}>
                 My Twitter
               </div>
             </div>

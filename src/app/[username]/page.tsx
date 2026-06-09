@@ -7,8 +7,8 @@ interface Props {
 const themes = {
   minimal: {
     bg: "bg-gradient-to-b from-white to-gray-50",
-    card: "bg-white border border-gray-200 shadow-sm hover:shadow-md",
-    text: "text-gray-900",
+    card: "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02]",
+    text: "text-white",
     accent: "text-gray-500",
     name: "text-gray-900",
     bio: "text-gray-500",
@@ -16,7 +16,7 @@ const themes = {
   },
   dark: {
     bg: "bg-gradient-to-b from-gray-900 to-gray-950",
-    card: "bg-gray-800/80 border border-gray-700 hover:border-gray-600",
+    card: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-purple-500/20 hover:scale-[1.02]",
     text: "text-white",
     accent: "text-gray-400",
     name: "text-white",
@@ -25,8 +25,8 @@ const themes = {
   },
   forest: {
     bg: "bg-gradient-to-b from-green-900 to-emerald-950",
-    card: "bg-green-800/60 border border-green-700/50 hover:bg-green-700/60",
-    text: "text-white",
+    card: "bg-gradient-to-r from-amber-400 to-orange-500 text-stone-900 shadow-md hover:shadow-amber-500/30 hover:scale-[1.02]",
+    text: "text-stone-900",
     accent: "text-green-300",
     name: "text-white",
     bio: "text-green-200",
@@ -34,7 +34,7 @@ const themes = {
   },
   ocean: {
     bg: "bg-gradient-to-b from-blue-900 to-indigo-950",
-    card: "bg-blue-800/50 border border-blue-700/50 hover:bg-blue-700/50",
+    card: "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md hover:shadow-cyan-500/30 hover:scale-[1.02]",
     text: "text-white",
     accent: "text-blue-300",
     name: "text-white",
@@ -43,7 +43,7 @@ const themes = {
   },
   sunset: {
     bg: "bg-gradient-to-b from-orange-500 via-pink-500 to-purple-600",
-    card: "bg-white/90 border border-white/30 hover:bg-white",
+    card: "bg-white text-gray-900 shadow-lg hover:shadow-xl hover:scale-[1.02]",
     text: "text-gray-900",
     accent: "text-gray-600",
     name: "text-white",
@@ -52,8 +52,8 @@ const themes = {
   },
   lavender: {
     bg: "bg-gradient-to-b from-purple-100 via-fuchsia-50 to-pink-100",
-    card: "bg-white/80 border border-purple-200 hover:border-purple-300",
-    text: "text-gray-900",
+    card: "bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-md hover:shadow-lg hover:scale-[1.02]",
+    text: "text-white",
     accent: "text-purple-600",
     name: "text-purple-900",
     bio: "text-purple-600",
